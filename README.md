@@ -48,6 +48,7 @@ Requires Python 3.11+. There are no third-party runtime dependencies and no API 
 # From the repository root:
 python3 -m agent_security_lab demo
 python3 -m unittest discover -v
+python3 -m agent_security_lab verify
 ```
 
 Inspect a scenario and a full trace:
@@ -60,6 +61,22 @@ python3 -m agent_security_lab run data-exfiltration --mode guarded --output arti
 ```
 
 Reports are saved only when `--output` is supplied. Existing output files are never overwritten. `artifacts/` is ignored by Git.
+
+`verify` checks all 24 seeded case/mode replays: complete coverage, valid runs,
+legitimate controls, expected unsafe effects, and guarded authorization boundaries.
+It saves its evidence and exits nonzero on a regression. It makes no model requests
+and is not a model-security certification.
+
+Export a saved experiment as a readable report without raw payloads, canaries, or
+model text:
+
+```sh
+python3 -m agent_security_lab report artifacts/experiments/EXPERIMENT_ID.json --output artifacts/report.md
+```
+
+The console also offers **Download report** alongside the original JSON export.
+Report summaries are recomputed from individual runs; errors, exclusions, and
+unexposed attacks remain visible. Existing Markdown files are never overwritten.
 
 Batch experiments save evidence under `artifacts/experiments/` and are visible in the web console:
 

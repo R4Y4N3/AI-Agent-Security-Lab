@@ -14,6 +14,7 @@ from uuid import uuid4
 from .agents import NoRedirect
 from .experiments import run_experiment, save_experiment, validate_config
 from .scenarios import SCENARIOS, load_scenario
+from .reporting import markdown
 
 WEB = Path(__file__).resolve().parent / "web"
 IDENTIFIER = re.compile(r"^[a-f0-9]{32}$")
@@ -140,6 +141,13 @@ def create_server(port=8787, directory=Path("artifacts/experiments")):
                 return self.send(local_models())
             if path == "/api/experiments":
                 return self.send(console.experiments())
+            match = re.fullmatch(r"/api/experiments/([a-f0-9]{32})/report.md", path)
+            if match:
+                try:
+                    record = json.loads((console.directory / (match[1] + ".json")).read_text())
+                    return self.send(markdown(record).encode(), kind="text/markdown")
+                except (OSError, ValueError, KeyError, TypeError):
+                    return self.send({"error": "Experiment report not found"}, 404)
             match = re.fullmatch(r"/api/experiments/([a-f0-9]{32})", path)
             if match:
                 file = console.directory / (match[1] + ".json")

@@ -94,6 +94,11 @@ class ConsoleTests(unittest.TestCase):
         self.assertEqual(result["kind"], "policy_replay")
         self.assertEqual(len(result["runs"]), 4)
         self.assertEqual(result["summary"][1]["unauthorized_effects"], 0)
+        status, headers, body = self.request("/api/experiments/" + job["experiment_id"] + "/report.md")
+        self.assertEqual(status, 200)
+        self.assertIn("text/markdown", headers["Content-Type"])
+        self.assertIn(b"not measured LLM", body)
+        self.assertEqual(self.request("/api/experiments/" + "f" * 32 + "/report.md")[0], 404)
 
 
 if __name__ == "__main__":

@@ -9,12 +9,18 @@ from .agents import AgentError, replay, run_ollama
 from .runtime import LabRuntime
 from .scenarios import SCENARIOS, load_scenario
 from .experiments import run_experiment, save_experiment
+from .reporting import markdown, verify
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Agent Security Lab — synthetic tools, real policy boundaries")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("list", help="List local scenarios")
+    verify_parser = sub.add_parser("verify", help="Self-check all seeded replay controls; no model requests")
+    verify_parser.add_argument("--directory", type=Path, default=Path("artifacts/experiments"))
+    report_parser = sub.add_parser("report", help="Render a saved experiment as Markdown without raw payloads")
+    report_parser.add_argument("input", type=Path)
+    report_parser.add_argument("--output", type=Path, required=True)
     serve_parser = sub.add_parser("serve", help="Open the loopback-only web research console")
     serve_parser.add_argument("--port", type=int, default=8787)
     batch = sub.add_parser("experiment", help="Run a repeatable paired batch and save its evidence")
@@ -35,6 +41,31 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--ollama-url", default="http://127.0.0.1:11434")
     run.add_argument("--output", type=Path, help="Save JSON to a new file (never overwrite)")
     args = parser.parse_args(argv)
+    if args.command == "report":
+        try:
+            body = markdown(json.loads(args.input.read_text()))
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            with args.output.open("x", encoding="utf-8") as output:
+                output.write(body)
+        except (ValueError, OSError, KeyError, TypeError) as error:
+            print(f"Cannot export report: {error}", file=sys.stderr)
+            return 1
+        print(args.output)
+        return 0
+    if args.command == "verify":
+        record = run_experiment({"scenarios": list(SCENARIOS)})
+        issues = verify(record)
+        try:
+            path = save_experiment(record, args.directory)
+        except OSError as error:
+            print(str(error), file=sys.stderr)
+            return 1
+        print(f"Evidence: {path}")
+        if issues:
+            print("\n".join(issues), file=sys.stderr)
+            return 1
+        print("All 24 seeded replays passed their controls. Not a model-security certification.")
+        return 0
     if args.command == "serve":
         if not 0 <= args.port <= 65535:
             parser.error("Port must be between 0 and 65535")

@@ -177,6 +177,7 @@ function renderExperiment(experiment) {
   $("#run-provenance").textContent =
     `${(experiment.provenance.git_commit || "unknown").slice(0, 7)}${experiment.provenance.git_dirty ? " (dirty)" : ""} · ${experiment.runs.length} runs · ${new Date(experiment.created_at).toLocaleString()}`;
   $("#download").disabled = false;
+  $("#download-markdown").disabled = false;
   const comparison = $("#comparison");
   const table = node("table", "comparison-table");
   table.setAttribute("aria-label", "Agent mode comparison");
@@ -543,6 +544,19 @@ $("#download").addEventListener("click", () => {
   a.download = `experiment-${state.experiment.id}.json`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+$("#download-markdown").addEventListener("click", async () => {
+  if (!state.experiment) return;
+  try {
+    const response = await fetch(`/api/experiments/${state.experiment.id}/report.md`);
+    if (!response.ok) throw new Error("Could not export the saved report.");
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `experiment-${state.experiment.id}.md`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) { notice(error.message, true); }
 });
 (async () => {
   try {
