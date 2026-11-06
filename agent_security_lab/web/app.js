@@ -34,19 +34,21 @@ async function api(path, options = {}) {
 }
 function view(name) {
   const names = {
-    overview: "Overview",
-    corpus: "Scenario corpus",
-    traces: "Trace explorer",
-    runs: "Experiments",
-    method: "Methodology",
+    overview: "Results",
+    corpus: "Scenarios",
+    traces: "Traces",
+    runs: "History",
+    method: "Notes",
   };
   if (!names[name]) return;
   document.querySelectorAll(".view").forEach((v) => {
     v.hidden = v.id !== `view-${name}`;
   });
-  document
-    .querySelectorAll(".nav-item")
-    .forEach((n) => n.classList.toggle("active", n.dataset.view === name));
+  document.querySelectorAll(".nav-item").forEach((n) => {
+    n.classList.toggle("active", n.dataset.view === name);
+    if (n.dataset.view === name) n.setAttribute("aria-current", "page");
+    else n.removeAttribute("aria-current");
+  });
   $("#crumb").textContent = names[name];
 }
 document
@@ -126,15 +128,6 @@ function percent(value) {
     ? "—"
     : `${Math.round(value * 100)}%`;
 }
-function metric(label, value, detail = "") {
-  const n = node("div");
-  n.append(
-    node("span", "", label),
-    node("strong", "", value),
-    node("small", "", detail),
-  );
-  return n;
-}
 function outcome(run) {
   if (run.status !== "completed") return ["neutral", run.status];
   if (run.metrics.unauthorized_effects) return ["bad", "Unauthorized effect"];
@@ -145,55 +138,57 @@ function outcome(run) {
 function renderExperiment(experiment) {
   state.experiment = experiment;
   const replay = experiment.kind === "policy_replay";
-  $("#experiment-kind").textContent = replay ? "POLICY REPLAY" : "LIVE MODEL";
+  $("#experiment-kind").textContent = replay ? "Policy replay" : "Live model";
   $("#experiment-kind").className = replay ? "pill" : "pill live";
   $("#experiment-note").textContent = experiment.notes;
   $("#run-provenance").textContent =
-    `REV ${(experiment.provenance.git_commit || "unknown").slice(0, 7)}${experiment.provenance.git_dirty ? " · DIRTY TREE" : ""} / ${experiment.runs.length} RUNS / ${new Date(experiment.created_at).toLocaleString()}`;
+    `${(experiment.provenance.git_commit || "unknown").slice(0, 7)}${experiment.provenance.git_dirty ? " (dirty)" : ""} · ${experiment.runs.length} runs · ${new Date(experiment.created_at).toLocaleString()}`;
   $("#download").disabled = false;
   const comparison = $("#comparison");
-  comparison.replaceChildren();
-  experiment.summary.forEach((s) => {
-    const block = node("div", "mode-block");
-    const top = node("div", "mode-top");
-    top.append(
-      node("h3", "", s.label),
-      node(
-        "span",
-        "",
-        `${s.attack_valid_exposed} valid exposed / ${s.excluded} excluded`,
-      ),
-    );
-    const bar = node("div", "bar-track");
-    const safe = node("div", "bar-safe");
-    const bad = node("div", "bar-unsafe");
-    const rate = s.attack_effect_rate;
-    safe.style.width = rate === null ? "0%" : `${(1 - rate) * 100}%`;
-    bad.style.width = rate === null ? "0%" : `${rate * 100}%`;
-    bar.append(safe, bad);
-    const metrics = node("div", "mode-metrics");
-    metrics.append(
-      metric(
-        replay ? "REPLAY ATTACK EFFECTS" : "OBSERVED ATTACK SUCCESS",
-        `${s.attack_effects}/${s.attack_valid_exposed}`,
-        rate === null
-          ? "No eligible attack runs"
-          : `${percent(rate)} · exposed, completed only`,
-      ),
-      metric(
-        "BENIGN COMPLETION",
-        percent(s.benign_completion_rate),
-        `${s.benign_valid} valid controls`,
-      ),
-      metric(
-        "COMPLETION UNDER ATTACK",
-        percent(s.completion_under_attack),
-        `${s.unexposed} unexposed · ${s.errors} errors`,
-      ),
-    );
-    block.append(top, bar, metrics);
-    comparison.append(block);
+  const table = node("table", "comparison-table");
+  table.setAttribute("aria-label", "Agent mode comparison");
+  const head = node("thead"),
+    headings = node("tr"),
+    body = node("tbody");
+  [
+    "Mode",
+    replay ? "Replay effects" : "Attack success",
+    "Benign completion",
+    "Completion under attack",
+    "Excluded",
+  ].forEach((label) => {
+    const th = node("th", "", label);
+    th.scope = "col";
+    headings.append(th);
   });
+  head.append(headings);
+  experiment.summary.forEach((s) => {
+    const row = node("tr"),
+      mode = node("td", "", s.label);
+    mode.append(
+      node("small", "", `${s.unexposed} unexposed · ${s.errors} errors`),
+    );
+    const effects = node(
+      "td",
+      "numeric",
+      s.attack_valid_exposed
+        ? `${s.attack_effects}/${s.attack_valid_exposed}`
+        : "—",
+    );
+    effects.append(node("small", "", "exposed, completed only"));
+    const benign = node("td", "numeric", percent(s.benign_completion_rate));
+    benign.append(node("small", "", `${s.benign_valid} valid controls`));
+    row.append(
+      mode,
+      effects,
+      benign,
+      node("td", "numeric", percent(s.completion_under_attack)),
+      node("td", "numeric", s.excluded),
+    );
+    body.append(row);
+  });
+  table.append(head, body);
+  comparison.replaceChildren(table);
   const rows = $("#result-rows");
   const traceSelect = $("#trace-select");
   rows.replaceChildren();

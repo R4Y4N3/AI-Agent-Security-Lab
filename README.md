@@ -17,13 +17,13 @@ python3 -m agent_security_lab serve
 Open **http://127.0.0.1:8787/**. The loopback-only console includes:
 
 - An experiment builder with scenario, mode, trial and seed controls.
-- Side-by-side policy outcomes with visible denominators and exclusions.
+- Tabular policy comparisons with visible denominators and exclusions.
 - A searchable corpus, trace explorer, model trajectories and JSON export.
 - Locally saved experiment history, source/fixture hashes and model provenance.
 - An explicit distinction between offline policy replay and live-model observations.
 - Background execution, progress, and cancellation after the current run.
 
-The console starts empty unless local experiments already exist. Click **Run policy demo** for a real offline replay—not prefilled benchmark numbers. It makes no model request. No external fonts, analytics, scripts, or accounts are required.
+The console starts empty unless local experiments already exist. Click **Run replay demo** for a real offline replay—not prefilled benchmark numbers. It makes no model request. No external fonts, analytics, scripts, or accounts are required.
 
 The server binds only to `127.0.0.1`, checks Host and Origin, and requires a session token for mutations. It is not hardened multi-user hosting: do not reverse-proxy it, bind it publicly, or deploy it to Vercel. Close with Ctrl+C when finished.
 
