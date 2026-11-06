@@ -12,15 +12,21 @@ The project remains private. A working prototype is not a completed research res
 - [x] Duplicate-payment and idempotency checks in the simulator.
 - [x] Optional local Ollama tool-calling adapter.
 - [x] Offline tests and CI workflow.
+- [x] Local web console: experiment builder, corpus, traces, history and export.
+- [x] Task-action capabilities checked independently of recipient/resource permissions.
+- [x] Fresh canaries and read-dependent exfiltration replays.
+- [x] Explicit exposure, invalid-run exclusions and model truncation handling.
+- [x] Paired batches with source/fixture hashes, seed/settings and model trajectories.
+- [x] Reserved quoted/encoded variants plus additional benign controls.
 
 ## Before claiming model-evaluation results
 
 - [ ] Choose and record an exact locally available tool-capable model and version.
 - [ ] Exercise the adapter with that live model; confirm its tool formatting.
-- [ ] Record repeated benign and adversarial runs, including errors and timeouts.
-- [ ] Separate model refusal, task failure, policy denial, and harmful effects.
-- [ ] Publish denominators, model settings, trial counts and raw synthetic artifacts.
-- [ ] Add held-out attack variants; avoid tuning and reporting on the same cases.
+- [ ] Collect repeated live-model benign/adversarial observations using the new runner.
+- [x] Separate unfinished tasks, policy denials, harmful effects and invalid/error runs. Explicit refusal annotation remains a manual interpretation of trajectories.
+- [x] Record denominators, settings, trial counts and synthetic artifacts locally; public release remains pending.
+- [x] Add reserved variants. Freeze an evaluation split before any future tuning campaign.
 
 ## Further development
 

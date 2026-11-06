@@ -46,7 +46,7 @@ class AgentTests(unittest.TestCase):
     def test_email_enters_as_tool_data_not_system_prompt(self, request):
         snapshots = []
 
-        def respond(endpoint, model, messages):
+        def respond(endpoint, model, messages, seed=42):
             snapshots.append([dict(item) for item in messages])
             if len(snapshots) == 1:
                 return message("read_email", {"email_id": "renewal"})
@@ -81,8 +81,8 @@ class AgentTests(unittest.TestCase):
     def test_malformed_calls_do_not_execute(self, request):
         request.return_value = {"role": "assistant", "tool_calls": [{"function": {"name": "exec"}}]}
         lab = LabRuntime(load_scenario("benign"), "unsafe")
-        with self.assertRaises(AgentError):
-            run_ollama(lab, "mock", "http://127.0.0.1:11434")
+        report = run_ollama(lab, "mock", "http://127.0.0.1:11434")
+        self.assertEqual(report["status"], "error")
         self.assertEqual(lab.events, [])
 
     @patch("agent_security_lab.agents.request_message")

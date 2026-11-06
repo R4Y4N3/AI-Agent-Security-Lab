@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from agent_security_lab.agents import AgentError
 from agent_security_lab.cli import main
+from agent_security_lab.scenarios import SCENARIOS
 
 
 class CliTests(unittest.TestCase):
@@ -26,7 +27,7 @@ class CliTests(unittest.TestCase):
     def test_demo_json_is_machine_readable(self):
         _, text = self.invoke("demo", "--json")
         reports = json.loads(text)
-        self.assertEqual(len(reports), 8)
+        self.assertEqual(len(reports), len(SCENARIOS) * 2)
         self.assertTrue(all(r["simulated"] for r in reports))
 
     def test_report_output_is_saved_and_never_overwritten(self):

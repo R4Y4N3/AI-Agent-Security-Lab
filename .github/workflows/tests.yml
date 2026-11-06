@@ -21,3 +21,4 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: python -m unittest discover -v
       - run: python -m agent_security_lab demo
+      - run: node --check agent_security_lab/web/app.js

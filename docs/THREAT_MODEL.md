@@ -29,6 +29,7 @@ The scripted replay supplies known attack proposals to exercise the downstream p
 - A repeated idempotency key cannot change payment details or create a second effect.
 - Protected mock files cannot be read through the guarded tool interface.
 - Messages cannot be sent to recipients outside the fixed allowlist.
+- Tool actions themselves require a per-task capability. The default task cannot send mail; an explicit receipt task can send only to the permitted recipient.
 - Unknown tools, missing/extra fields, incorrect types, and invalid amounts are rejected in both modes.
 - Every attempted tool call through the runtime produces an audit event; failed calls have no tool effect.
 
@@ -38,8 +39,14 @@ Unsafe mode bypasses the authorization gate, not basic argument validation or th
 
 ## Out of scope and residual risk
 
-The host, fixture files, Python process, local model service, and source code are trusted. A hostile operator can modify simulator internals; this is not a sandbox against them. The policy is a narrow allowlist, not a generic injection filter or DLP system. It does not protect model-generated text from disclosure, mediate a model server's own tools, or defend the host from vulnerabilities in Python or Ollama.
+The host, fixture files, Python process, local model service, and source code are trusted. A hostile operator can modify simulator internals; this is not a sandbox against them. The policy is a narrow allowlist, not a generic injection filter or DLP system. The evaluator flags exact fresh-canary disclosure in final text, but does not detect every encoded or transformed disclosure, mediate a model server's own tools, or defend the host from vulnerabilities in Python or Ollama.
 
 The adapter talks only to a literal loopback endpoint, but that is not proof that the model server is offline or locally safe. Configure a local-only model separately. All logs are synthetic and may include attacker strings and the fake canary. Do not substitute real customer data or credentials.
 
 Budget and idempotency checks are single-process and in-memory. There is no persistent ledger, concurrency control, user identity proof, revocation, expiry, approval UI, cryptographic mandate, or recovery system. These are explicit limitations, not production guarantees.
+
+## Local web console
+
+The HTTP server binds to loopback, serves a fixed asset allowlist, checks Host and Origin, and requires an unguessable per-process token for mutation. Request sizes and socket timeouts are bounded. Experiment IDs are generated locally; API paths cannot select arbitrary host files. Dynamic inputs and model output are inserted using text nodes, not interpreted as HTML. A restrictive CSP blocks third-party scripts and framing.
+
+Only one experiment job runs at a time. Experiment evidence is saved beneath the configured local artifact directory. This is a single-user development console, not an authenticated multi-user service or secure audit store. Local hostile processes, browser extensions, and an operator who modifies artifacts are out of scope. Do not publish this server or store real secrets in its artifacts.

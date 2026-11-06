@@ -8,12 +8,23 @@ from pathlib import Path
 from .agents import AgentError, replay, run_ollama
 from .runtime import LabRuntime
 from .scenarios import SCENARIOS, load_scenario
+from .experiments import run_experiment, save_experiment
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Agent Security Lab — synthetic tools, real policy boundaries")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("list", help="List local scenarios")
+    serve_parser = sub.add_parser("serve", help="Open the loopback-only web research console")
+    serve_parser.add_argument("--port", type=int, default=8787)
+    batch = sub.add_parser("experiment", help="Run a repeatable paired batch and save its evidence")
+    batch.add_argument("--scenarios", nargs="+", choices=SCENARIOS, default=list(SCENARIOS[:4]))
+    batch.add_argument("--agent", choices=("scripted", "ollama"), default="scripted")
+    batch.add_argument("--model")
+    batch.add_argument("--trials", type=int, default=1)
+    batch.add_argument("--seed", type=int, default=42)
+    batch.add_argument("--modes", nargs="+", choices=("unsafe", "guarded"), default=["unsafe", "guarded"])
+    batch.add_argument("--directory", type=Path, default=Path("artifacts/experiments"))
     demo = sub.add_parser("demo", help="Compare unsafe and guarded scripted policy replays")
     demo.add_argument("--json", action="store_true", help="Emit a full JSON report")
     run = sub.add_parser("run", help="Run one scenario")
@@ -24,6 +35,22 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--ollama-url", default="http://127.0.0.1:11434")
     run.add_argument("--output", type=Path, help="Save JSON to a new file (never overwrite)")
     args = parser.parse_args(argv)
+    if args.command == "serve":
+        if not 0 <= args.port <= 65535:
+            parser.error("Port must be between 0 and 65535")
+        from .server import serve
+        serve(args.port)
+        return 0
+    if args.command == "experiment":
+        try:
+            config = {key: getattr(args, key) for key in ("scenarios", "agent", "model", "trials", "seed", "modes")}
+            experiment = run_experiment(config)
+            path = save_experiment(experiment, args.directory)
+        except (ValueError, OSError) as error:
+            print(str(error), file=sys.stderr)
+            return 1
+        print(json.dumps({"path": str(path), "kind": experiment["kind"], "summary": experiment["summary"]}, indent=2))
+        return 0 if all(r["status"] == "completed" for r in experiment["runs"]) else 1
     if args.command == "list":
         for name in SCENARIOS:
             print(f"{name:20} {load_scenario(name)['description']}")

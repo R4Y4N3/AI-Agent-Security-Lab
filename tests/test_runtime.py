@@ -25,6 +25,8 @@ class RuntimeTests(unittest.TestCase):
 
     def test_all_attack_replays_show_effect_only_in_unsafe_mode(self):
         for name in SCENARIOS[1:]:
+            if load_scenario(name)["family"] == "benign":
+                continue
             for mode in ("unsafe", "guarded"):
                 with self.subTest(scenario=name, mode=mode):
                     report = replay(LabRuntime(load_scenario(name), mode))
@@ -95,7 +97,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(lab.spent_cents, 0)
 
     def test_email_is_memory_only_and_recipient_restricted(self):
-        lab = self.lab()
+        lab = self.lab(scope=replace(Scope(), allowed_tools=(*Scope().allowed_tools, "send_email")))
         self.assertFalse(lab.call("send_email", {"to": "audit@attacker.invalid", "body": "test"})["ok"])
         result = lab.call("send_email", {"to": "finance@lab.invalid", "body": "synthetic receipt"})
         self.assertTrue(result["simulated"])
