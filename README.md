@@ -22,6 +22,7 @@ Open **http://127.0.0.1:8787/**. The loopback-only console includes:
 - Locally saved experiment history, source/fixture hashes and model provenance.
 - An explicit distinction between offline policy replay and live-model observations.
 - Background execution, progress, and cancellation after the current run.
+- Light/dark themes with a saved preference and system-theme default.
 
 The console starts empty unless local experiments already exist. Click **Run replay demo** for a real offline replay—not prefilled benchmark numbers. It makes no model request. No external fonts, analytics, scripts, or accounts are required.
 

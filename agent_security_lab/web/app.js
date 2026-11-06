@@ -1,4 +1,37 @@
 "use strict";
+// Preferences are optional: the console must work with browser storage disabled.
+(() => {
+  const key = "research-lab-theme";
+  const media = window.matchMedia("(prefers-color-scheme: dark)");
+  const button = document.querySelector("#theme-toggle");
+  let preference = null;
+  try {
+    preference = localStorage.getItem(key);
+  } catch {}
+  if (!["light", "dark"].includes(preference)) preference = null;
+  function apply() {
+    const dark = preference ? preference === "dark" : media.matches;
+    document.documentElement.dataset.theme = dark ? "dark" : "light";
+    button.setAttribute("aria-pressed", String(dark));
+  }
+  button.addEventListener("click", () => {
+    preference =
+      document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    try {
+      localStorage.setItem(key, preference);
+    } catch {}
+    apply();
+  });
+  media.addEventListener("change", apply);
+  window.addEventListener("storage", (event) => {
+    if (event.key !== key && event.key !== null) return;
+    preference = ["light", "dark"].includes(event.newValue)
+      ? event.newValue
+      : null;
+    apply();
+  });
+  apply();
+})();
 const $ = (selector) => document.querySelector(selector);
 const state = {
   token: "",

@@ -9,6 +9,24 @@
   --accent-wash: #f5eee9;
   --good: #356247;
   --bad: #9c302a;
+  --button-text: #fff;
+  --button-border: #aaaead;
+  --field-line: #afb4b1;
+  --table-head: #f4f5f2;
+  --line-soft: #e4e6e2;
+  --row-hover: #fafbf8;
+  --history-hover: #f8f9f6;
+  --disabled-bg: #eceeeb;
+  --disabled-text: #747773;
+  --notice-bg: #edf2ec;
+  --notice-text: #34513b;
+  --error-bg: #f9eeeb;
+  --error-text: #8f342e;
+  --code-bg: #f5f6f3;
+  --code-text: #343a38;
+  --body-copy: #565c58;
+  --event-allowed: #698771;
+  --event-blocked: #ad7067;
   --mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
   font:
     14px/1.55 -apple-system,
@@ -27,6 +45,59 @@ body {
 body.agent-notebook {
   --accent: #31566d;
   --accent-wash: #edf2f5;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #202426;
+  --canvas: #171a1c;
+  --ink: #e3e7e5;
+  --muted: #adb4b1;
+  --line: #41494b;
+  --accent: #e3a38f;
+  --accent-wash: #332721;
+  --good: #9ac5a8;
+  --bad: #f0a19b;
+  --button-text: #171a1c;
+  --button-border: #707976;
+  --field-line: #707976;
+  --table-head: #2a3032;
+  --line-soft: #353d3f;
+  --row-hover: #282f31;
+  --history-hover: #282f31;
+  --disabled-bg: #303739;
+  --disabled-text: #b0b6b3;
+  --notice-bg: #23342b;
+  --notice-text: #b1d1b9;
+  --error-bg: #3a2726;
+  --error-text: #f0b4ac;
+  --code-bg: #191f21;
+  --code-text: #cbd3cd;
+  --body-copy: #bfc7c2;
+  --event-allowed: #69997d;
+  --event-blocked: #b0786f;
+}
+:root[data-theme="dark"] body.agent-notebook {
+  --accent: #93bdd5;
+  --accent-wash: #22303b;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.theme-toggle {
+  padding: 5px 9px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--field-line);
+  border-radius: 2px;
+  font-size: 11px;
+}
+.theme-toggle:hover,
+.theme-toggle[aria-pressed="true"] {
+  color: var(--accent);
+  background: var(--accent-wash);
 }
 button,
 input,
@@ -184,7 +255,7 @@ main {
   padding: 8px 13px;
   border: 1px solid var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--button-text);
   border-radius: 3px;
   font-size: 12px;
   font-weight: 550;
@@ -197,7 +268,7 @@ main {
 .secondary {
   color: var(--ink);
   background: var(--paper);
-  border-color: #aaaead;
+  border-color: var(--button-border);
 }
 .secondary:hover {
   background: var(--canvas);
@@ -325,7 +396,7 @@ table {
   font-size: 12px;
 }
 th {
-  background: #f4f5f2;
+  background: var(--table-head);
   color: var(--muted);
   font-size: 11px;
   font-weight: 500;
@@ -334,7 +405,7 @@ th {
 td,
 th {
   padding: 11px 12px;
-  border-bottom: 1px solid #e4e6e2;
+  border-bottom: 1px solid var(--line-soft);
   vertical-align: top;
 }
 td:first-child,
@@ -345,7 +416,7 @@ tbody tr:last-child td {
   border-bottom: 0;
 }
 tbody tr:hover {
-  background: #fafbf8;
+  background: var(--row-hover);
 }
 td small {
   display: block;
@@ -501,7 +572,7 @@ select {
   width: 100%;
   min-width: 0;
   background: var(--paper);
-  border: 1px solid #afb4b1;
+  border: 1px solid var(--field-line);
   border-radius: 2px;
   color: var(--ink);
   padding: 8px 9px;
@@ -516,8 +587,8 @@ select {
 }
 input:disabled,
 select:disabled {
-  background: #eceeeb;
-  color: #747773;
+  background: var(--disabled-bg);
+  color: var(--disabled-text);
 }
 .search-label {
   min-width: 160px;
@@ -573,15 +644,15 @@ progress {
   padding: 10px 12px;
   margin: 0 0 18px;
   border-left: 3px solid var(--good);
-  background: #edf2ec;
-  color: #34513b;
+  background: var(--notice-bg);
+  color: var(--notice-text);
   font-size: 12px;
 }
 .notice.error,
 #notice.error {
   border-color: var(--bad);
-  background: #f9eeeb;
-  color: #8f342e;
+  background: var(--error-bg);
+  color: var(--error-text);
 }
 .history-entry,
 .history-row {
@@ -599,7 +670,7 @@ progress {
 .history-entry:hover,
 .history-row:hover {
   color: var(--accent);
-  background: #f8f9f6;
+  background: var(--history-hover);
 }
 .history-entry:last-child,
 .history-row:last-child {
@@ -641,8 +712,8 @@ pre {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 0;
-  background: #f5f6f3;
-  color: #343a38;
+  background: var(--code-bg);
+  color: var(--code-text);
   font: 11px/1.8 var(--mono);
 }
 details {
@@ -708,11 +779,11 @@ summary {
 }
 .trace-step.allowed,
 .trace-event.allowed {
-  border-color: #698771;
+  border-color: var(--event-allowed);
 }
 .trace-step.denied,
 .trace-event.blocked {
-  border-color: #ad7067;
+  border-color: var(--event-blocked);
 }
 .trace-step h3,
 .event-heading strong {
@@ -738,7 +809,7 @@ dd,
 .prose ul,
 .method ul {
   font-size: 13px;
-  color: #565c58;
+  color: var(--body-copy);
   max-width: 76ch;
 }
 .prose h2,
