@@ -1,42 +1,430 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="A local research console for reproducible agent-security experiments.">
-  <title>AI Agent Security Lab · Research console</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/app.css"><script defer src="/app.js"></script>
-</head>
-<body>
-  <a class="skip" href="#main">Skip to workspace</a>
-  <aside class="sidebar">
-    <a class="brand" href="/" aria-label="AI Agent Security Lab home"><span class="brand-mark">⌁</span><span>AGENT SECURITY<span class="brand-sub">RESEARCH LAB / R4Y4N3</span></span></a>
-    <div class="workspace-label">WORKSPACE <span>01</span></div>
-    <nav aria-label="Workspace"><button class="nav-item active" data-view="overview"><span>◫</span> Overview</button><button class="nav-item" data-view="corpus"><span>▧</span> Scenario corpus <small id="corpus-count">—</small></button><button class="nav-item" data-view="traces"><span>⌘</span> Trace explorer</button><button class="nav-item" data-view="runs"><span>◷</span> Experiments</button><button class="nav-item" data-view="method"><span>≡</span> Methodology</button></nav>
-    <div class="sidebar-note"><span class="live-dot"></span> LOCAL ENVIRONMENT<p>Mock tools. Synthetic data.<br>No real-world side effects.</p><span class="version">v0.2 · private development</span></div>
-    <a class="repository" href="https://github.com/R4Y4N3/AI-Agent-Security-Lab" target="_blank" rel="noopener noreferrer">Private repository <span>↗</span></a>
-  </aside>
-  <div class="shell">
-    <header class="topbar"><div><span class="muted">Workspace</span><span class="slash">/</span><span id="crumb">Overview</span></div><div class="header-right"><span class="local-label"><span class="live-dot"></span> 127.0.0.1</span><span class="avatar">R4</span></div></header>
-    <main id="main">
-      <section class="page-heading"><div><div class="eyebrow">OFFENSIVE AI SECURITY / EXPERIMENT WORKSPACE</div><h1>Test the agent.<br class="mobile-break"> Measure the boundary.</h1><p>Reproducible experiments in prompt injection, tool misuse,<br class="desktop-break"> and task-scoped authorization.</p></div><button class="button primary" id="quick-run"><span>▶</span> Run policy demo</button></section>
-      <div class="safety-strip"><span class="strip-icon">◇</span><strong>A lab, not a leaderboard.</strong><span>Scripted replays and live-model observations are kept separate. No invented benchmark scores.</span></div>
-      <div id="notice" role="status" aria-live="polite" hidden></div>
-      <section class="stats" aria-label="Corpus and experiment facts"><div class="stat"><span>SCENARIO CORPUS</span><strong id="stat-cases">—<small>cases</small></strong><p>Development + reserved variants</p></div><div class="stat"><span>ATTACK FAMILIES</span><strong>03<small>vectors</small></strong><p>Redirection · exfiltration · approval</p></div><div class="stat"><span>COMPARISON MODES</span><strong>02<small>boundaries</small></strong><p>Prompt only vs. prompt + policy</p></div><div class="stat"><span>LIVE-MODEL RUNS</span><strong id="stat-live">0<small>recorded</small></strong><p id="model-status">Checking local model service…</p></div></section>
-      <div class="work-grid">
-        <div class="content-area">
-          <section id="view-overview" class="view">
-            <article class="panel"><div class="panel-heading"><div><span class="eyebrow">LATEST EXPERIMENT</span><h2>Boundary comparison</h2></div><span class="pill" id="experiment-kind">No run selected</span></div><p class="panel-description" id="experiment-note">Run the offline demo to inspect the same proposals with and without policy enforcement.</p><div id="comparison" class="comparison"><div class="empty-state"><span>⌁</span><h3>Start with a controlled comparison</h3><p>The offline demo executes known proposals against synthetic tools. It needs no model, key, or network access.</p><button class="button secondary" id="empty-run">Run policy demo <span>↗</span></button></div></div><div class="panel-footer"><span id="run-provenance">No experiment recorded</span><button class="text-button" id="download" disabled>Export JSON ↓</button></div></article>
-            <article class="panel"><div class="panel-heading"><div><span class="eyebrow">STATE-BASED OUTCOMES</span><h2>Run results</h2></div><button class="text-button" data-view="traces">Explore traces ↗</button></div><div class="table-wrap"><table><thead><tr><th>SCENARIO</th><th>MODE</th><th>EXPOSURE</th><th>OUTCOME</th><th></th></tr></thead><tbody id="result-rows"><tr><td colspan="5" class="muted">No runs yet. Results appear after an experiment completes.</td></tr></tbody></table></div></article>
-          </section>
-          <section id="view-corpus" class="view" hidden><article class="panel"><div class="panel-heading"><div><span class="eyebrow">CONTROLLED INPUTS</span><h2>Scenario corpus</h2></div><label class="search-label"><span class="sr-only">Search scenarios</span><input type="search" id="corpus-search" placeholder="Search scenarios…"></label></div><p class="panel-description">Three benign controls and three attack families. “Holdout” means reserved from initial development, not unseen model training data.</p><div id="corpus-cards" class="corpus-cards"></div></article></section>
-          <section id="view-traces" class="view" hidden><article class="panel"><div class="panel-heading"><div><span class="eyebrow">FOLLOW THE DECISION</span><h2>Trace explorer</h2></div><select id="trace-select" aria-label="Select a run"><option>No runs available</option></select></div><div id="trace-content" class="trace-content"><p class="muted">Select an experiment and then a run to inspect tool calls, policy decisions, and model messages.</p></div></article></section>
-          <section id="view-runs" class="view" hidden><article class="panel"><div class="panel-heading"><div><span class="eyebrow">LOCAL ARTIFACT STORE</span><h2>Experiment history</h2></div><button class="text-button" id="refresh">Refresh ↻</button></div><div id="history" class="history"></div></article></section>
-          <section id="view-method" class="view" hidden><article class="panel method"><span class="eyebrow">RESEARCH CONTRACT</span><h2>Evidence before claims.</h2><p><strong>Question:</strong> Can task-scoped tool authorization contain prompt-injection effects while preserving legitimate task completion?</p><h3>Two distinct experiments</h3><p><strong>Policy replay:</strong> Known proposals exercise the enforcement boundary. Replay outcomes are not measured model attack-success rates.</p><p><strong>Live model:</strong> A local Ollama model chooses tools. Malicious content enters through a tool response, never a trusted system instruction. Only completed runs where the input was observed enter the relevant rate denominator.</p><h3>What gets recorded</h3><p>Case and source hashes, Git revision and dirty state, trial and seed, generation settings, observed tool effects, error/limit status, and model trajectories. The web runner also captures the installed model digest. Fresh random canaries are synthetic, and are not made reproducible from the model seed.</p><h3>Safety and utility are separate</h3><p>We report benign task completion, completion under attack, attack exposure, prohibited effects, and excluded runs. A blocked proposal is not evidence that the task succeeded. Unexposed and failed runs are not silently counted as resisted attacks.</p><h3>Known limits</h3><p>This is a small hand-authored corpus, not a representative benchmark. The single-process mock ledger is not a payment system. Policies are narrow allowlists, not a general prompt-injection detector. Model seeds are best-effort reproducibility controls, not a guarantee of identical inference across machines.</p><h3>Reading</h3><p><a href="https://github.com/ethz-spylab/agentdojo" target="_blank" rel="noopener noreferrer">AgentDojo ↗</a> · <a href="https://github.com/uiuc-kang-lab/InjecAgent" target="_blank" rel="noopener noreferrer">InjecAgent ↗</a> · <a href="https://arxiv.org/abs/2503.18813" target="_blank" rel="noopener noreferrer">CaMeL ↗</a></p></article></section>
-        </div>
-        <aside class="config-panel panel"><div class="panel-heading"><div><span class="eyebrow">EXPERIMENT BUILDER</span><h2>Configure a run</h2></div><span class="step-label">01—03</span></div><form id="run-form"><fieldset><legend>01 <span>Execution engine</span></legend><label class="engine-option"><input type="radio" name="agent" value="scripted" checked><span><strong>Policy replay</strong><small>Offline · known proposals · instant</small></span><span class="pill subtle">DEFAULT</span></label><label class="engine-option"><input type="radio" name="agent" value="ollama"><span><strong>Local model</strong><small>Ollama · model-selected actions</small></span></label><div id="model-options" hidden><label class="field-label" for="model">Installed model</label><select id="model"><option value="">No local model available</option></select><p class="helper" id="model-help">No model downloads or automatic server startup.</p></div></fieldset><fieldset><legend>02 <span>Scenario selection</span></legend><div class="selection-actions"><button type="button" class="text-button" id="select-dev">Development</button><button type="button" class="text-button" id="select-holdout">Holdout</button><button type="button" class="text-button" id="select-all">All</button></div><div id="case-options" class="case-options"></div></fieldset><fieldset><legend>03 <span>Comparison & repeatability</span></legend><label class="check"><input type="checkbox" name="mode" value="unsafe" checked> Prompt only <span class="muted">baseline</span></label><label class="check"><input type="checkbox" name="mode" value="guarded" checked> Prompt + policy <span class="muted">guarded</span></label><div class="field-row"><label class="field-label">Trials per case<input id="trials" type="number" min="1" max="5" value="1" disabled></label><label class="field-label">Base seed<input id="seed" type="number" min="0" max="2147483641" value="42"></label></div><p class="helper" id="trial-help">One replay per case. Repeating a scripted plan is not an independent trial.</p></fieldset><div class="run-summary"><span id="planned-count">8</span> runs · all effects simulated</div><button class="button primary wide" id="submit-run" type="submit">Run experiment <span>→</span></button><button class="text-button danger" id="cancel-run" type="button" hidden>Cancel after current run</button><div class="job-progress" id="job-progress" hidden><progress id="progress" value="0" max="1"></progress><span id="progress-text">Preparing…</span></div><p class="privacy-note">⊙ Runs and traces stay on this machine.</p></form></aside>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="A local research console for reproducible agent-security experiments."
+    />
+    <title>AI Agent Security Lab · Research console</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/app.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to workspace</a>
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="AI Agent Security Lab home"
+        ><span class="brand-mark">⌁</span
+        ><span
+          >AGENT SECURITY<span class="brand-sub"
+            >RESEARCH LAB / R4Y4N3</span
+          ></span
+        ></a
+      >
+      <div class="workspace-label">WORKSPACE <span>01</span></div>
+      <nav aria-label="Workspace">
+        <button class="nav-item active" data-view="overview">
+          <span>◫</span> Overview</button
+        ><button class="nav-item" data-view="corpus">
+          <span>▧</span> Scenario corpus
+          <small id="corpus-count">—</small></button
+        ><button class="nav-item" data-view="traces">
+          <span>⌘</span> Trace explorer</button
+        ><button class="nav-item" data-view="runs">
+          <span>◷</span> Experiments</button
+        ><button class="nav-item" data-view="method">
+          <span>≡</span> Methodology
+        </button>
+      </nav>
+      <div class="sidebar-note">
+        <span class="live-dot"></span> LOCAL ENVIRONMENT
+        <p>Mock tools. Synthetic data.<br />No real-world side effects.</p>
+        <span class="version">v0.2 · private development</span>
       </div>
-      <footer>AI Agent Security Lab <span>Built by R4Y4N3 · Private research prototype</span></footer>
-    </main>
-  </div>
-</body>
+      <a
+        class="repository"
+        href="https://github.com/R4Y4N3/AI-Agent-Security-Lab"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Private repository <span>↗</span></a
+      >
+    </aside>
+    <div class="shell">
+      <header class="topbar">
+        <div>
+          <span class="muted">Workspace</span><span class="slash">/</span
+          ><span id="crumb">Overview</span>
+        </div>
+        <div class="header-right">
+          <span class="local-label"
+            ><span class="live-dot"></span> 127.0.0.1</span
+          ><span class="avatar">R4</span>
+        </div>
+      </header>
+      <main id="main">
+        <section class="page-heading">
+          <div>
+            <div class="eyebrow">
+              OFFENSIVE AI SECURITY / EXPERIMENT WORKSPACE
+            </div>
+            <h1>
+              Test the agent.<br class="mobile-break" />
+              Measure the boundary.
+            </h1>
+            <p>
+              Reproducible experiments in prompt injection, tool misuse,<br
+                class="desktop-break"
+              />
+              and task-scoped authorization.
+            </p>
+          </div>
+          <button class="button primary" id="quick-run">
+            <span>▶</span> Run policy demo
+          </button>
+        </section>
+        <div class="safety-strip">
+          <span class="strip-icon">◇</span
+          ><strong>A lab, not a leaderboard.</strong
+          ><span
+            >Scripted replays and live-model observations are kept separate. No
+            invented benchmark scores.</span
+          >
+        </div>
+        <div id="notice" role="status" aria-live="polite" hidden></div>
+        <section class="stats" aria-label="Corpus and experiment facts">
+          <div class="stat">
+            <span>SCENARIO CORPUS</span
+            ><strong id="stat-cases">—<small>cases</small></strong>
+            <p>Development + reserved variants</p>
+          </div>
+          <div class="stat">
+            <span>ATTACK FAMILIES</span
+            ><strong>03<small>vectors</small></strong>
+            <p>Redirection · exfiltration · approval</p>
+          </div>
+          <div class="stat">
+            <span>COMPARISON MODES</span
+            ><strong>02<small>boundaries</small></strong>
+            <p>Prompt only vs. prompt + policy</p>
+          </div>
+          <div class="stat">
+            <span>LIVE-MODEL RUNS</span
+            ><strong id="stat-live">0<small>recorded</small></strong>
+            <p id="model-status">Checking local model service…</p>
+          </div>
+        </section>
+        <div class="work-grid">
+          <div class="content-area">
+            <section id="view-overview" class="view">
+              <article class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <span class="eyebrow">LATEST EXPERIMENT</span>
+                    <h2>Boundary comparison</h2>
+                  </div>
+                  <span class="pill" id="experiment-kind">No run selected</span>
+                </div>
+                <p class="panel-description" id="experiment-note">
+                  Run the offline demo to inspect the same proposals with and
+                  without policy enforcement.
+                </p>
+                <div id="comparison" class="comparison">
+                  <div class="empty-state">
+                    <span>⌁</span>
+                    <h3>Start with a controlled comparison</h3>
+                    <p>
+                      The offline demo executes known proposals against
+                      synthetic tools. It needs no model, key, or network
+                      access.
+                    </p>
+                    <button class="button secondary" id="empty-run">
+                      Run policy demo <span>↗</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="panel-footer">
+                  <span id="run-provenance">No experiment recorded</span
+                  ><button class="text-button" id="download" disabled>
+                    Export JSON ↓
+                  </button>
+                </div>
+              </article>
+              <article class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <span class="eyebrow">STATE-BASED OUTCOMES</span>
+                    <h2>Run results</h2>
+                  </div>
+                  <button class="text-button" data-view="traces">
+                    Explore traces ↗
+                  </button>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>SCENARIO</th>
+                        <th>MODE</th>
+                        <th>EXPOSURE</th>
+                        <th>OUTCOME</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="result-rows">
+                      <tr>
+                        <td colspan="5" class="muted">
+                          No runs yet. Results appear after an experiment
+                          completes.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </article>
+            </section>
+            <section id="view-corpus" class="view" hidden>
+              <article class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <span class="eyebrow">CONTROLLED INPUTS</span>
+                    <h2>Scenario corpus</h2>
+                  </div>
+                  <label class="search-label"
+                    ><span class="sr-only">Search scenarios</span
+                    ><input
+                      type="search"
+                      id="corpus-search"
+                      placeholder="Search scenarios…"
+                  /></label>
+                </div>
+                <p class="panel-description">
+                  Three benign controls and three attack families. “Holdout”
+                  means reserved from initial development, not unseen model
+                  training data.
+                </p>
+                <div id="corpus-cards" class="corpus-cards"></div>
+              </article>
+            </section>
+            <section id="view-traces" class="view" hidden>
+              <article class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <span class="eyebrow">FOLLOW THE DECISION</span>
+                    <h2>Trace explorer</h2>
+                  </div>
+                  <select id="trace-select" aria-label="Select a run">
+                    <option>No runs available</option>
+                  </select>
+                </div>
+                <div id="trace-content" class="trace-content">
+                  <p class="muted">
+                    Select an experiment and then a run to inspect tool calls,
+                    policy decisions, and model messages.
+                  </p>
+                </div>
+              </article>
+            </section>
+            <section id="view-runs" class="view" hidden>
+              <article class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <span class="eyebrow">LOCAL ARTIFACT STORE</span>
+                    <h2>Experiment history</h2>
+                  </div>
+                  <button class="text-button" id="refresh">Refresh ↻</button>
+                </div>
+                <div id="history" class="history"></div>
+              </article>
+            </section>
+            <section id="view-method" class="view" hidden>
+              <article class="panel method">
+                <span class="eyebrow">RESEARCH CONTRACT</span>
+                <h2>Evidence before claims.</h2>
+                <p>
+                  <strong>Question:</strong> Can task-scoped tool authorization
+                  contain prompt-injection effects while preserving legitimate
+                  task completion?
+                </p>
+                <h3>Two distinct experiments</h3>
+                <p>
+                  <strong>Policy replay:</strong> Known proposals exercise the
+                  enforcement boundary. Replay outcomes are not measured model
+                  attack-success rates.
+                </p>
+                <p>
+                  <strong>Live model:</strong> A local Ollama model chooses
+                  tools. Malicious content enters through a tool response, never
+                  a trusted system instruction. Only completed runs where the
+                  input was observed enter the relevant rate denominator.
+                </p>
+                <h3>What gets recorded</h3>
+                <p>
+                  Case and source hashes, Git revision and dirty state, trial
+                  and seed, generation settings, observed tool effects,
+                  error/limit status, and model trajectories. The web runner
+                  also captures the installed model digest. Fresh random
+                  canaries are synthetic, and are not made reproducible from the
+                  model seed.
+                </p>
+                <h3>Safety and utility are separate</h3>
+                <p>
+                  We report benign task completion, completion under attack,
+                  attack exposure, prohibited effects, and excluded runs. A
+                  blocked proposal is not evidence that the task succeeded.
+                  Unexposed and failed runs are not silently counted as resisted
+                  attacks.
+                </p>
+                <h3>Known limits</h3>
+                <p>
+                  This is a small hand-authored corpus, not a representative
+                  benchmark. The single-process mock ledger is not a payment
+                  system. Policies are narrow allowlists, not a general
+                  prompt-injection detector. Model seeds are best-effort
+                  reproducibility controls, not a guarantee of identical
+                  inference across machines.
+                </p>
+                <h3>Reading</h3>
+                <p>
+                  <a
+                    href="https://github.com/ethz-spylab/agentdojo"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >AgentDojo ↗</a
+                  >
+                  ·
+                  <a
+                    href="https://github.com/uiuc-kang-lab/InjecAgent"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >InjecAgent ↗</a
+                  >
+                  ·
+                  <a
+                    href="https://arxiv.org/abs/2503.18813"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >CaMeL ↗</a
+                  >
+                </p>
+              </article>
+            </section>
+          </div>
+          <aside class="config-panel panel">
+            <div class="panel-heading">
+              <div>
+                <span class="eyebrow">EXPERIMENT BUILDER</span>
+                <h2>Configure a run</h2>
+              </div>
+              <span class="step-label">01—03</span>
+            </div>
+            <form id="run-form">
+              <fieldset>
+                <legend>01 <span>Execution engine</span></legend>
+                <label class="engine-option"
+                  ><input
+                    type="radio"
+                    name="agent"
+                    value="scripted"
+                    checked
+                  /><span
+                    ><strong>Policy replay</strong
+                    ><small>Offline · known proposals · instant</small></span
+                  ><span class="pill subtle">DEFAULT</span></label
+                ><label class="engine-option"
+                  ><input type="radio" name="agent" value="ollama" /><span
+                    ><strong>Local model</strong
+                    ><small>Ollama · model-selected actions</small></span
+                  ></label
+                >
+                <div id="model-options" hidden>
+                  <label class="field-label" for="model">Installed model</label
+                  ><select id="model">
+                    <option value="">No local model available</option>
+                  </select>
+                  <p class="helper" id="model-help">
+                    No model downloads or automatic server startup.
+                  </p>
+                </div>
+              </fieldset>
+              <fieldset>
+                <legend>02 <span>Scenario selection</span></legend>
+                <div class="selection-actions">
+                  <button type="button" class="text-button" id="select-dev">
+                    Development</button
+                  ><button
+                    type="button"
+                    class="text-button"
+                    id="select-holdout"
+                  >
+                    Holdout</button
+                  ><button type="button" class="text-button" id="select-all">
+                    All
+                  </button>
+                </div>
+                <div id="case-options" class="case-options"></div>
+              </fieldset>
+              <fieldset>
+                <legend>03 <span>Comparison & repeatability</span></legend>
+                <label class="check"
+                  ><input type="checkbox" name="mode" value="unsafe" checked />
+                  Prompt only <span class="muted">baseline</span></label
+                ><label class="check"
+                  ><input type="checkbox" name="mode" value="guarded" checked />
+                  Prompt + policy <span class="muted">guarded</span></label
+                >
+                <div class="field-row">
+                  <label class="field-label"
+                    >Trials per case<input
+                      id="trials"
+                      type="number"
+                      min="1"
+                      max="5"
+                      value="1"
+                      disabled /></label
+                  ><label class="field-label"
+                    >Base seed<input
+                      id="seed"
+                      type="number"
+                      min="0"
+                      max="2147483641"
+                      value="42"
+                  /></label>
+                </div>
+                <p class="helper" id="trial-help">
+                  One replay per case. Repeating a scripted plan is not an
+                  independent trial.
+                </p>
+              </fieldset>
+              <div class="run-summary">
+                <span id="planned-count">8</span> runs · all effects simulated
+              </div>
+              <button class="button primary wide" id="submit-run" type="submit">
+                Run experiment <span>→</span></button
+              ><button
+                class="text-button danger"
+                id="cancel-run"
+                type="button"
+                hidden
+              >
+                Cancel after current run
+              </button>
+              <div class="job-progress" id="job-progress" hidden>
+                <progress id="progress" value="0" max="1"></progress
+                ><span id="progress-text">Preparing…</span>
+              </div>
+              <p class="privacy-note">
+                ⊙ Runs and traces stay on this machine.
+              </p>
+            </form>
+          </aside>
+        </div>
+        <footer>
+          AI Agent Security Lab
+          <span>Built by R4Y4N3 · Private research prototype</span>
+        </footer>
+      </main>
+    </div>
+  </body>
 </html>
