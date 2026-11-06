@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-security-lab"
+version = "0.1.0"
+description = "A local, synthetic testbed for agent tool-use and authorization boundaries"
+requires-python = ">=3.11"
+authors = [{name = "Rayane Boucheraine"}]
+dependencies = []
+
+[project.scripts]
+agent-security-lab = "agent_security_lab.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["agent_security_lab*"]
+
+[tool.setuptools.package-data]
+agent_security_lab = ["fixtures/*.json"]
