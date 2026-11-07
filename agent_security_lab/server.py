@@ -144,7 +144,7 @@ def create_server(port=8787, directory=Path("artifacts/experiments")):
         def send(self, data, status=200, kind="application/json"):
             body = json.dumps(data).encode() if kind == "application/json" else data
             self.send_response(status)
-            self.send_header("Content-Type", kind + "; charset=utf-8")
+            self.send_header("Content-Type", kind if kind == "font/woff2" else kind + "; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Content-Type-Options", "nosniff")
@@ -158,7 +158,9 @@ def create_server(port=8787, directory=Path("artifacts/experiments")):
                 return self.send({"error": "Untrusted origin or Host"}, 403)
             path = self.path.split("?", 1)[0]
             assets = {"/": ("index.html", "text/html"), "/app.css": ("app.css", "text/css"),
-                      "/app.js": ("app.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml")}
+                      "/app.js": ("app.js", "text/javascript"), "/favicon.svg": ("favicon.svg", "image/svg+xml"),
+                      "/inter-latin-variable.woff2": ("inter-latin-variable.woff2", "font/woff2"),
+                      "/jetbrains-mono-latin.woff2": ("jetbrains-mono-latin.woff2", "font/woff2")}
             if path in assets:
                 filename, kind = assets[path]
                 return self.send((WEB / filename).read_bytes(), kind=kind)

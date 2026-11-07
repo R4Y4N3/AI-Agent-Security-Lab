@@ -60,6 +60,7 @@ async function api(path, body) {
   return data;
 }
 function updateForm() {
+  $("#result").classList.toggle("is-running", state.busy);
   const size = bytes($("#payload").value);
   $("#payload-count").textContent = `${size.toLocaleString()} / 8,000 bytes`;
   $("#submit-attack").disabled =
@@ -134,11 +135,11 @@ function renderCatalog() {
         element("p", lab.description),
         element("span", `${lab.category} · ${lab.level}`, "lab-meta"),
       );
-      link.append(
-        element("span", lab.number, "lab-number"),
-        text,
-        element("span", "Start lab →", "start"),
-      );
+      const start = element("span", "Start lab", "start");
+      const arrow = element("span", "→", "start-arrow");
+      arrow.setAttribute("aria-hidden", "true");
+      start.append(arrow);
+      link.append(element("span", lab.number, "lab-number"), text, start);
       return link;
     }),
   );

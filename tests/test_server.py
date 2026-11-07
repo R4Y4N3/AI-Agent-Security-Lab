@@ -48,6 +48,20 @@ class ConsoleTests(unittest.TestCase):
         for old in (b"Run replay demo", b"History", b"Comparison", b"Ollama"):
             self.assertNotIn(old, body)
 
+    def test_fonts_are_local_woff2_with_correct_media_type(self):
+        for path in ("/inter-latin-variable.woff2", "/jetbrains-mono-latin.woff2"):
+            status, headers, body = self.request(path)
+            self.assertEqual(status, 200)
+            self.assertEqual(headers["Content-Type"], "font/woff2")
+            self.assertEqual(body[:4], b"wOF2")
+
+    def test_motion_and_local_font_fallbacks(self):
+        _, _, css = self.request("/app.css")
+        self.assertIn(b"prefers-reduced-motion: reduce", css)
+        self.assertIn(b'font-family: "Inter"', css)
+        self.assertIn(b"font-display: swap", css)
+        self.assertNotIn(b"fonts.googleapis.com", css)
+
     def test_public_labs_do_not_call_provider_or_expose_keys(self):
         with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-private-key"}, clear=True), patch("agent_security_lab.deepseek.request_message") as request:
             status, _, body = self.request("/api/labs")
