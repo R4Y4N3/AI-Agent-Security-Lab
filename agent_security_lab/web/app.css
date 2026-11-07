@@ -334,6 +334,13 @@ textarea::placeholder {
 .connection code {
   font: 11px var(--mono);
 }
+.tool-reference-item {
+  margin-top: 16px;
+}
+.tool-reference-item code {
+  font: 11px var(--mono);
+  overflow-wrap: anywhere;
+}
 .consent {
   display: flex;
   align-items: flex-start;
@@ -493,7 +500,7 @@ footer {
 .lab-card:nth-child(2) {
   --enter-delay: 120ms;
 }
-.lab-card:nth-child(3) {
+.lab-card:nth-child(n + 3) {
   --enter-delay: 180ms;
 }
 #workspace:not([hidden]) .brief {

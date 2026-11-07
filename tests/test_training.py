@@ -16,7 +16,7 @@ CONFIG = {"lab": "tool-hijack", "payload": "A learner's custom email.", "allow_a
 class TrainingTests(unittest.TestCase):
     def test_labs_are_briefs_not_replay_solutions(self):
         labs = public_labs()
-        self.assertEqual(len(labs), 3)
+        self.assertEqual(len(labs), 8)
         self.assertNotIn("plan", json.dumps(labs))
         self.assertNotIn("family", labs[0])
 

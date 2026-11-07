@@ -72,10 +72,14 @@
               <h2>You control</h2>
               <p id="surface"></p>
               <p class="muted">
-                Only the untrusted email body. Not the system prompt, tool
-                definitions, or trusted task.
+                Only the untrusted content described above. Not the system
+                prompt, tool definitions, or trusted task.
               </p>
             </section>
+            <details>
+              <summary>Target tools</summary>
+              <div id="tool-reference"></div>
+            </details>
             <details>
               <summary>Need a hint?</summary>
               <p id="hint"></p>
@@ -88,15 +92,15 @@
                 ><span id="payload-count" class="muted">0 / 8,000 bytes</span>
               </div>
               <p class="muted small">
-                Replaces the email the target reads. Write your own payload; no
-                solution is prefilled.
+                Replaces this lab's untrusted content. Write your own payload;
+                no solution is prefilled.
               </p>
               <textarea
                 id="payload"
                 name="payload"
                 maxlength="8000"
                 spellcheck="false"
-                placeholder="Write the email content the agent will read…"
+                placeholder="Write the content the agent will read…"
                 required
               ></textarea>
               <div id="provider-status" class="connection" role="status"></div>

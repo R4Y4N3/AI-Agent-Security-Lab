@@ -37,7 +37,9 @@ The project remains private. A working prototype is not a completed research res
 ## Further development
 
 - [ ] Add a scoped approval/revocation lifecycle and expiry tests.
-- [ ] Add RAG/tool-output injection scenarios beyond a single email.
+- [x] Eight hands-on workflows spanning email, calendar, support, RAG, memory,
+      repository content, worker output and automation, with isolated state and
+      effect-based objectives. See LAB_SOURCES.md for provenance and limits.
 - [ ] Add a small MCP test server once the current boundary has stable coverage.
 - [ ] Add a reproducible environment manifest for model runs.
 - [ ] Review concurrency and durable idempotency before any persistent backend.

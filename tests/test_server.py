@@ -66,7 +66,7 @@ class ConsoleTests(unittest.TestCase):
         with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-private-key"}, clear=True), patch("agent_security_lab.deepseek.request_message") as request:
             status, _, body = self.request("/api/labs")
         self.assertEqual(status, 200)
-        self.assertEqual(len(json.loads(body)["labs"]), 3)
+        self.assertEqual(len(json.loads(body)["labs"]), 8)
         self.assertNotIn(b"test-private-key", body)
         request.assert_not_called()
 

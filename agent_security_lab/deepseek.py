@@ -45,11 +45,11 @@ def wire_messages(messages):
     return result
 
 
-def request_message(endpoint, model, messages, seed=42):
+def request_message(endpoint, model, messages, seed=42, tools=None):
     if endpoint != ENDPOINT or not provider_status()["ready"]:
         raise AgentError("DeepSeek requests are disabled or not configured.")
     body = json.dumps({"model": model, "messages": wire_messages(messages),
-        "tools": tool_definitions(), "stream": False, "temperature": 0, "max_tokens": 1024,
+        "tools": tool_definitions() if tools is None else tools, "stream": False, "temperature": 0, "max_tokens": 1024,
         "thinking": {"type": "disabled"}}).encode()
     request = Request(ENDPOINT, data=body, headers={"Content-Type": "application/json",
         "Authorization": "Bearer " + os.environ["DEEPSEEK_API_KEY"].strip()})
@@ -83,5 +83,22 @@ def run_deepseek(runtime):
     status = provider_status()
     if not status["ready"]:
         raise AgentError(status["message"])
-    return run_tool_agent(runtime, status["model"], ENDPOINT, request_message,
-        f"deepseek:{status['model']}", max_turns=6, max_calls=12)
+    def requester(endpoint, model, messages, seed=42):
+        return request_message(endpoint, model, messages, seed=seed,
+            tools=runtime.tool_definitions() if hasattr(runtime, "tool_definitions") else None)
+    name = f"deepseek:{status['model']}"
+    if getattr(runtime, "lab_id", None) == "memory-poisoning":
+        first = run_tool_agent(runtime, status["model"], ENDPOINT, requester, name, max_turns=3, max_calls=6)
+        if first["status"] != "completed" or not runtime.input_observed or runtime.memory is None:
+            # A completed preparation without a saved note is not a completed attempt.
+            first["metrics"]["evaluation_valid"] = False
+            first["metrics"]["exclusion_reason"] = "memory_preparation_incomplete"
+            return first
+        runtime.preparation_complete = True
+        runtime.phase = 2
+        report = run_tool_agent(runtime, status["model"], ENDPOINT, requester, name, max_turns=3, max_calls=6)
+        report["trajectory"] = first["trajectory"] + report["trajectory"]
+        report["model_responses"] = first["model_responses"] + report["model_responses"]
+        report["phases"] = ["Store meeting note", "Reuse memory in fresh context"]
+        return report
+    return run_tool_agent(runtime, status["model"], ENDPOINT, requester, name, max_turns=6, max_calls=12)

@@ -110,6 +110,19 @@ function route() {
   ])
     $(selector).textContent = lab[field];
   $("#lab-category").textContent = `${lab.number} / ${lab.category}`;
+  $("#tool-reference").replaceChildren(
+    ...(lab.tools || []).map(({ function: tool }) => {
+      const item = element("div", "", "tool-reference-item");
+      const args = Object.entries(tool.parameters.properties)
+        .map(([name, value]) => `${name}: ${value.type}`)
+        .join(", ");
+      item.append(
+        element("code", `${tool.name}(${args})`),
+        element("p", tool.description, "muted small"),
+      );
+      return item;
+    }),
+  );
   $("#payload").value = state.drafts[lab.id] || "";
   $("#consent").checked = false;
   $("#consent-row").hidden = !state.provider.ready;
@@ -181,7 +194,10 @@ function showResult(attempt) {
   report.events.forEach((event) => {
     const details = element("details", "");
     details.append(
-      element("summary", `${event.step}. ${event.tool} — ${event.decision}`),
+      element(
+        "summary",
+        `${event.step}. ${event.tool} — ${event.decision}${report.phases ? ` · phase ${event.phase}` : ""}`,
+      ),
       element(
         "pre",
         JSON.stringify(
