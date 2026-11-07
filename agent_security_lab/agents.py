@@ -121,6 +121,13 @@ def model_manifest(model: str, base_url="http://127.0.0.1:11434") -> dict:
 
 def run_ollama(runtime: LabRuntime, model: str, base_url: str, seed: int = 42) -> dict:
     endpoint = ollama_endpoint(base_url)
+    return run_tool_agent(runtime, model, endpoint, request_message, f"ollama:{model}", seed=seed)
+
+
+def run_tool_agent(runtime, model, endpoint, requester, agent_name, *, seed=42, max_turns=None, max_calls=None):
+    """Shared model-driven tool loop. No replay plans are read here."""
+    max_turns = MAX_TURNS if max_turns is None else max_turns
+    max_calls = MAX_CALLS if max_calls is None else max_calls
     scope = runtime.scope
     messages = [
         {"role": "system", "content": (
@@ -143,16 +150,16 @@ def run_ollama(runtime: LabRuntime, model: str, base_url: str, seed: int = 42) -
     pending_input = False
 
     def finish(final="", status="completed"):
-        report = runtime.report(f"ollama:{model}", final, status)
+        report = runtime.report(agent_name, final, status)
         report["trajectory"] = deepcopy(transcript)
         report["model_responses"] = deepcopy(responses)
         return report
 
-    for _ in range(MAX_TURNS):
+    for _ in range(max_turns):
         if pending_input:
             runtime.input_observed = True
         try:
-            message = request_message(endpoint, model, messages, seed=seed)
+            message = requester(endpoint, model, messages, seed=seed)
         except AgentError as error:
             return finish(str(error), "error")
         message = deepcopy(message)
@@ -174,7 +181,7 @@ def run_ollama(runtime: LabRuntime, model: str, base_url: str, seed: int = 42) -
             return finish(str(message.get("content", "")))
         messages.append(message)
         for call in calls:
-            if calls_executed >= MAX_CALLS:
+            if calls_executed >= max_calls:
                 return finish(status="call_limit")
             if not isinstance(call, dict) or not isinstance(call.get("function"), dict):
                 return finish("Malformed model tool call", "error")

@@ -4,6 +4,12 @@ The project remains private. A working prototype is not a completed research res
 
 ## Implemented
 
+- [x] Labs-only learner entry page and individual lab workspaces.
+- [x] Human-authored payloads instead of prefilled replay solutions.
+- [x] DeepSeek transport with explicit server enablement and per-attempt consent.
+- [x] Fresh target state, effect-based feedback, and current-attempt tool trace.
+- [ ] Validate a live DeepSeek attempt after the owner configures access; no paid calls have been made.
+
 - [x] Synthetic email, file, outbound-message and payment tools.
 - [x] Benign, payment-redirection, data-exfiltration and forged-approval scenarios.
 - [x] Unsafe and independent-policy execution modes.

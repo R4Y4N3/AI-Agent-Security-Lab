@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-security-lab"
-version = "0.2.0"
-description = "A reproducible testbed for prompt injection, tool misuse, and authorization boundaries in tool-using AI agents."
+version = "0.3.0"
+description = "Hands-on security labs for prompt injection and tool misuse in AI agents."
 requires-python = ">=3.11"
 authors = [{name = "Rayane Boucheraine"}]
 dependencies = []

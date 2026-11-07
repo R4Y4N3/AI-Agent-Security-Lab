@@ -4,6 +4,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from agent_security_lab.server import create_server
@@ -40,6 +41,49 @@ class ConsoleTests(unittest.TestCase):
 
     def test_server_binds_only_loopback(self):
         self.assertEqual(self.server.server_address[0], "127.0.0.1")
+
+    def test_home_is_labs_only(self):
+        _, _, body = self.request("/")
+        self.assertIn(b"Choose a lab.", body)
+        for old in (b"Run replay demo", b"History", b"Comparison", b"Ollama"):
+            self.assertNotIn(old, body)
+
+    def test_public_labs_do_not_call_provider_or_expose_keys(self):
+        with patch.dict("os.environ", {"DEEPSEEK_API_KEY": "test-private-key"}, clear=True), patch("agent_security_lab.deepseek.request_message") as request:
+            status, _, body = self.request("/api/labs")
+        self.assertEqual(status, 200)
+        self.assertEqual(len(json.loads(body)["labs"]), 3)
+        self.assertNotIn(b"test-private-key", body)
+        request.assert_not_called()
+
+    def test_attempts_require_token_consent_and_enabled_provider(self):
+        config = {"lab": "tool-hijack", "payload": "custom attack", "allow_api_call": True}
+        self.assertEqual(self.request("/api/attempts", "POST", config)[0], 403)
+        headers = {"X-Lab-Token": self.server.console.token}
+        with patch("agent_security_lab.server.provider_status", return_value={"ready": False, "message": "Not configured"}):
+            self.assertEqual(self.request("/api/attempts", "POST", config, headers)[0], 400)
+
+    def test_training_attempt_end_to_end_with_mock_provider_only(self):
+        def respond(runtime):
+            runtime.input_observed = True
+            return runtime.report("mock-provider")
+        config = {"lab": "tool-hijack", "payload": "custom attack", "allow_api_call": True}
+        headers = {"X-Lab-Token": self.server.console.token}
+        with patch("agent_security_lab.server.provider_status", return_value={"ready": True}), patch("agent_security_lab.training.run_deepseek", side_effect=respond):
+            status, _, body = self.request("/api/attempts", "POST", config, headers)
+            self.assertEqual(status, 202)
+            job_id = json.loads(body)["job_id"]
+            for _ in range(100):
+                _, _, raw = self.request("/api/jobs/" + job_id)
+                job = json.loads(raw)
+                if job["status"] not in ("queued", "running"):
+                    break
+                time.sleep(.01)
+        self.assertEqual(job["status"], "completed", job)
+        status, _, raw = self.request("/api/attempts/" + job["attempt_id"])
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(raw)["verdict"], "objective_not_reached")
+        self.assertEqual(self.request("/api/attempts/../../README.md")[0], 404)
 
     def test_static_assets_and_csp(self):
         for path in ("/", "/app.js", "/app.css", "/favicon.svg"):

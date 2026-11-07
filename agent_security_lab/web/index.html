@@ -5,364 +5,132 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <meta
       name="description"
-      content="Local agent-security experiments, results, and traces."
+      content="Hands-on AI agent security labs. Choose a target, write an attack, and inspect what the agent actually does."
     />
-    <title>AI Agent Security Lab</title>
+    <title>Labs — AI Agent Security Lab</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/app.css" />
     <script defer src="/app.js"></script>
   </head>
-  <body class="agent-notebook">
-    <a class="skip" href="#main">Skip to experiments</a>
-    <header class="app-header">
-      <div class="masthead">
-        <a class="brand" href="/">AI Agent Security Lab <span>0.2</span></a>
-        <div class="header-actions">
-          <a
-            class="repository"
-            href="https://github.com/R4Y4N3/AI-Agent-Security-Lab"
-            target="_blank"
-            rel="noopener noreferrer"
-            >R4Y4N3 / private repository</a
-          ><button
-            type="button"
-            id="theme-toggle"
-            class="theme-toggle"
-            aria-pressed="false"
-          >
-            Dark mode
-          </button>
-        </div>
-      </div>
-      <nav aria-label="Workspace">
-        <button
-          class="nav-item active"
-          data-view="overview"
-          aria-current="page"
-        >
-          Results
-        </button>
-        <button class="nav-item" data-view="corpus">
-          Scenarios <small id="corpus-count">—</small>
-        </button>
-        <button class="nav-item" data-view="traces">Traces</button>
-        <button class="nav-item" data-view="runs">History</button>
-        <button class="nav-item" data-view="method">Notes</button>
-      </nav>
+  <body>
+    <a class="skip" href="#main">Skip to labs</a>
+    <header class="header">
+      <a class="brand" href="#/">AI Agent Security Lab</a
+      ><button
+        id="theme-toggle"
+        class="quiet"
+        type="button"
+        aria-pressed="false"
+      >
+        Dark mode
+      </button>
     </header>
     <main id="main">
-      <section class="page-heading">
-        <div>
-          <p class="breadcrumb">
-            Agent security / <span id="crumb">Results</span>
-          </p>
-          <h1>Agent experiments</h1>
+      <p id="notice" class="notice" role="status" aria-live="polite" hidden></p>
+      <section id="catalog">
+        <div class="page-title">
+          <p class="eyebrow">HANDS-ON / AI RED TEAMING</p>
+          <h1>Choose a lab.</h1>
           <p class="intro">
-            Compare prompt-only and policy-enforced runs against the same
-            invoice scenarios.
+            Find the weak point. Write your attack. Try to make the agent cross
+            the boundary.
           </p>
         </div>
-        <button class="button primary" id="quick-run">Run replay demo</button>
-      </section>
-      <section class="factline" aria-label="Corpus and experiment facts">
-        <span
-          ><strong id="stat-cases">—<small>cases</small></strong></span
-        ><span><strong>3</strong> attack families</span
-        ><span><strong>2</strong> comparison modes</span
-        ><span
-          >Live-model runs:
-          <strong id="stat-live">0<small>recorded</small></strong></span
-        ><span class="environment" id="model-status">Checking Ollama…</span>
-      </section>
-      <p class="method-note">
-        Replays test known tool proposals. Live-model runs are a separate
-        experiment. Both use synthetic tools and data.
-      </p>
-      <div id="notice" role="status" aria-live="polite" hidden></div>
-      <div class="work-grid">
-        <div class="content-area">
-          <section id="view-overview" class="view">
-            <article class="panel">
-              <div class="panel-heading">
-                <h2>Comparison</h2>
-                <span class="pill" id="experiment-kind"
-                  >No experiment selected</span
-                >
-              </div>
-              <p class="panel-description" id="experiment-note">
-                Run a replay or choose an experiment from History.
-              </p>
-              <div id="comparison" class="comparison">
-                <div class="empty-state">
-                  <p>
-                    No results yet. The replay demo needs no model or API key.
-                  </p>
-                  <button class="button secondary" id="empty-run">
-                    Run replay demo
-                  </button>
-                </div>
-              </div>
-              <div class="panel-footer">
-                <span id="run-provenance">No experiment recorded</span
-                ><button class="text-button" id="download" disabled>
-                  Download JSON
-                </button>
-                <button class="text-button" id="download-markdown" disabled>Download report</button>
-              </div>
-            </article>
-            <article class="panel">
-              <div class="panel-heading">
-                <h2>Run results</h2>
-                <button class="text-button" data-view="traces">
-                  Open traces
-                </button>
-              </div>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Scenario</th>
-                      <th>Mode</th>
-                      <th>Exposure</th>
-                      <th>Outcome</th>
-                      <th><span class="sr-only">Inspect</span></th>
-                    </tr>
-                  </thead>
-                  <tbody id="result-rows">
-                    <tr>
-                      <td colspan="5" class="muted">
-                        Results appear after an experiment completes.
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </article>
-          </section>
-          <section id="view-corpus" class="view" hidden>
-            <article class="panel">
-              <div class="panel-heading">
-                <h2>Scenarios</h2>
-                <label class="search-label"
-                  ><span class="sr-only">Search scenarios</span
-                  ><input
-                    type="search"
-                    id="corpus-search"
-                    placeholder="Filter scenarios"
-                /></label>
-              </div>
-              <p class="panel-description">
-                Three benign controls and three attack families. “Holdout” means
-                reserved from initial development, not unseen model training
-                data.
-              </p>
-              <div id="corpus-cards" class="corpus-cards"></div>
-            </article>
-          </section>
-          <section id="view-traces" class="view" hidden>
-            <article class="panel">
-              <div class="panel-heading"><h2>Run trace</h2></div>
-              <label
-                >Inspect a run<select
-                  id="trace-select"
-                  aria-label="Select a run"
-                >
-                  <option>No runs available</option>
-                </select></label
-              >
-              <div id="trace-content" class="trace-content">
-                <p class="muted">
-                  Select an experiment, then a run, to inspect its tool calls
-                  and policy decisions.
-                </p>
-              </div>
-            </article>
-          </section>
-          <section id="view-runs" class="view" hidden>
-            <article class="panel">
-              <div class="panel-heading">
-                <h2>Saved experiments</h2>
-                <button class="text-button" id="refresh">Refresh</button>
-              </div>
-              <div id="history" class="history"></div>
-            </article>
-          </section>
-          <section id="view-method" class="view" hidden>
-            <article class="panel method">
-              <h2>Experiment notes</h2>
-              <p>
-                <strong>Question:</strong> Can task-scoped authorization contain
-                prompt-injection effects while preserving legitimate task
-                completion?
-              </p>
-              <h3>Replay and live-model runs</h3>
-              <p>
-                <strong>Policy replay:</strong> known proposals test the
-                enforcement boundary. These are not measured LLM attack-success
-                rates.
-              </p>
-              <p>
-                <strong>Live model:</strong> a local Ollama model chooses tools.
-                Untrusted content arrives through a tool response, not the
-                system instruction. Only completed runs where input was observed
-                enter the relevant rate denominator.
-              </p>
-              <h3>Evidence</h3>
-              <p>
-                Reports include source and case hashes, Git revision and dirty
-                state, trial and seed, generation settings, observed effects,
-                errors, and model trajectories. The web runner also captures the
-                installed model digest. Canaries are fresh synthetic values, not
-                derived from the model seed.
-              </p>
-              <h3>Reading the outcomes</h3>
-              <p>
-                Benign completion, completion under attack, prohibited effects,
-                exposure, and excluded runs are reported separately. Blocking a
-                proposal does not mean the task succeeded. Unexposed or failed
-                runs do not count as resisted attacks.
-              </p>
-              <h3>Limits</h3>
-              <p>
-                This is a small hand-authored corpus around one invoice
-                workflow, not a representative benchmark. The mock ledger is not
-                a payment system, and the policies are narrow allowlists, not a
-                general injection detector. Seeds do not guarantee identical
-                model inference across machines.
-              </p>
-              <h3>References</h3>
-              <ul>
-                <li>
-                  <a
-                    href="https://github.com/ethz-spylab/agentdojo"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >AgentDojo</a
-                  >
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/uiuc-kang-lab/InjecAgent"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >InjecAgent</a
-                  >
-                </li>
-                <li>
-                  <a
-                    href="https://arxiv.org/abs/2503.18813"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >CaMeL</a
-                  >
-                </li>
-              </ul>
-            </article>
-          </section>
+        <div id="labs" class="lab-list" aria-label="Available labs">
+          <p class="muted">Loading labs…</p>
         </div>
-        <aside class="config-panel" aria-label="Experiment configuration">
-          <h2>New experiment</h2>
-          <form id="run-form">
-            <fieldset>
-              <legend>Execution</legend>
-              <label class="engine-option"
-                ><input
-                  type="radio"
-                  name="agent"
-                  value="scripted"
-                  checked
-                /><span
-                  >Policy replay<small
-                    >Known tool proposals · offline</small
-                  ></span
-                ></label
-              ><label class="engine-option"
-                ><input type="radio" name="agent" value="ollama" /><span
-                  >Local model<small
-                    >Tools chosen by an Ollama model</small
-                  ></span
-                ></label
-              >
-              <div id="model-options" hidden>
-                <label class="field-label"
-                  >Model<select id="model">
-                    <option value="">Checking models…</option>
-                  </select></label
-                >
-                <p class="helper" id="model-help">
-                  Choose an installed tool-capable model.
-                </p>
-              </div>
-            </fieldset>
-            <fieldset>
-              <legend>Scenarios</legend>
-              <div class="selection-actions">
-                <button type="button" class="text-button" id="select-dev">
-                  Development</button
-                ><button type="button" class="text-button" id="select-holdout">
-                  Holdout</button
-                ><button type="button" class="text-button" id="select-all">
-                  All
-                </button>
-              </div>
-              <div id="case-options" class="case-options"></div>
-            </fieldset>
-            <fieldset>
-              <legend>Modes &amp; repeatability</legend>
-              <label class="check"
-                ><input type="checkbox" name="mode" value="unsafe" checked />
-                Prompt only</label
-              ><label class="check"
-                ><input type="checkbox" name="mode" value="guarded" checked />
-                Prompt + policy</label
-              >
-              <div class="field-row">
-                <label class="field-label"
-                  >Trials per case<input
-                    id="trials"
-                    type="number"
-                    min="1"
-                    max="5"
-                    value="1"
-                    disabled /></label
-                ><label class="field-label"
-                  >Base seed<input
-                    id="seed"
-                    type="number"
-                    min="0"
-                    max="2147483641"
-                    value="42"
-                /></label>
-              </div>
-              <p class="helper" id="trial-help">
-                One replay per case. Repetition is not an independent trial.
+        <p class="footnote">
+          Model-driven targets. Synthetic tools and data. No real payments or
+          messages.
+        </p>
+      </section>
+      <section id="workspace" hidden>
+        <a class="back" href="#/">← All labs</a>
+        <div class="lab-heading">
+          <p id="lab-category" class="eyebrow"></p>
+          <h1 id="lab-title" tabindex="-1"></h1>
+          <p id="lab-description" class="intro"></p>
+        </div>
+        <div class="workspace-grid">
+          <aside class="brief" aria-label="Lab brief">
+            <section>
+              <h2>Your objective</h2>
+              <p id="objective"></p>
+            </section>
+            <section>
+              <h2>The target</h2>
+              <p id="context"></p>
+            </section>
+            <section>
+              <h2>You control</h2>
+              <p id="surface"></p>
+              <p class="muted">
+                Only the untrusted email body. Not the system prompt, tool
+                definitions, or trusted task.
               </p>
-            </fieldset>
-            <div class="run-summary">
-              <strong id="planned-count">8</strong> runs selected
-            </div>
-            <button class="button primary wide" id="submit-run" type="submit">
-              Run experiment</button
-            ><button
-              class="secondary wide"
-              id="cancel-run"
-              type="button"
-              hidden
+            </section>
+            <details>
+              <summary>Need a hint?</summary>
+              <p id="hint"></p>
+            </details>
+          </aside>
+          <div class="attack-area">
+            <form id="attack-form">
+              <div class="editor-heading">
+                <label for="payload">Your attack</label
+                ><span id="payload-count" class="muted">0 / 8,000 bytes</span>
+              </div>
+              <p class="muted small">
+                Replaces the email the target reads. Write your own payload; no
+                solution is prefilled.
+              </p>
+              <textarea
+                id="payload"
+                name="payload"
+                maxlength="8000"
+                spellcheck="false"
+                placeholder="Write the email content the agent will read…"
+                required
+              ></textarea>
+              <div id="provider-status" class="connection" role="status"></div>
+              <label id="consent-row" class="consent" hidden
+                ><input id="consent" type="checkbox" />Send this payload and
+                synthetic lab context to DeepSeek. This uses the configured API
+                account and may incur charges (up to 6 model requests).</label
+              >
+              <div class="actions">
+                <button
+                  id="submit-attack"
+                  class="primary"
+                  type="submit"
+                  disabled
+                >
+                  Test attack</button
+                ><button id="reset" class="quiet" type="button">Reset</button
+                ><span class="muted small"
+                  >Fresh target state on every attempt.</span
+                >
+              </div>
+            </form>
+            <section
+              id="result"
+              class="result"
+              aria-label="Attempt result"
+              aria-live="polite"
             >
-              Cancel after current run
-            </button>
-            <div class="job-progress" id="job-progress" hidden>
-              <progress id="progress" value="0" max="1"></progress
-              ><span id="progress-text">Preparing…</span>
-            </div>
-            <p class="privacy-note">Traces are stored on this machine.</p>
-          </form>
-        </aside>
-      </div>
-      <footer>
-        <span>AI Agent Security Lab · R4Y4N3</span
-        ><span>Synthetic data. Local experiments.</span>
-      </footer>
+              <h2>Agent response</h2>
+              <p class="muted">
+                Your result and the agent's tool calls will appear here after an
+                attempt.
+              </p>
+            </section>
+          </div>
+        </div>
+      </section>
     </main>
+    <footer>
+      <span>R4Y4N3 / local training lab</span
+      ><span>Attack only the targets provided here.</span>
+    </footer>
   </body>
 </html>

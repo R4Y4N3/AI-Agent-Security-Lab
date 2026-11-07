@@ -15,6 +15,8 @@ from .agents import NoRedirect
 from .experiments import run_experiment, save_experiment, validate_config
 from .scenarios import SCENARIOS, load_scenario
 from .reporting import markdown
+from .deepseek import provider_status
+from .training import public_labs, run_attempt, validate_attempt
 
 WEB = Path(__file__).resolve().parent / "web"
 IDENTIFIER = re.compile(r"^[a-f0-9]{32}$")
@@ -41,6 +43,34 @@ class Console:
         self.lock = threading.Lock()
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.jobs: dict[str, dict] = {}
+
+    def submit_attempt(self, config):
+        config = validate_attempt(config)
+        status = provider_status()
+        if not status["ready"]:
+            raise ValueError(status["message"])
+        with self.lock:
+            if any(j["status"] in ("queued", "running") for j in self.jobs.values()):
+                raise ValueError("An attempt is already running. Wait for it to finish.")
+            job_id = uuid4().hex
+            self.jobs[job_id] = {"id": job_id, "kind": "training", "status": "queued", "cancel_requested": False}
+        self.executor.submit(self._work_attempt, job_id, config)
+        return job_id
+
+    def _work_attempt(self, job_id, config):
+        with self.lock:
+            self.jobs[job_id]["status"] = "running"
+        try:
+            attempt = run_attempt(config)
+            directory = self.directory / "attempts"
+            directory.mkdir(parents=True, exist_ok=True)
+            with (directory / (attempt["id"] + ".json")).open("x", encoding="utf-8") as output:
+                json.dump(attempt, output, indent=2)
+            with self.lock:
+                self.jobs[job_id].update(status="completed", attempt_id=attempt["id"])
+        except Exception:
+            with self.lock:
+                self.jobs[job_id].update(status="error", error="The live attempt could not finish. Check DeepSeek configuration and connectivity; no success is assumed.")
 
     def experiments(self):
         if not self.directory.exists():
@@ -134,6 +164,17 @@ def create_server(port=8787, directory=Path("artifacts/experiments")):
                 return self.send((WEB / filename).read_bytes(), kind=kind)
             if path == "/api/session":
                 return self.send({"token": console.token, "local_only": True})
+            if path == "/api/labs":
+                return self.send({"labs": public_labs(), "provider": provider_status()})
+            match = re.fullmatch(r"/api/attempts/([a-f0-9]{32})", path)
+            if match:
+                try:
+                    attempt = json.loads((console.directory / "attempts" / (match[1] + ".json")).read_text())
+                    if attempt.get("kind") != "training_attempt" or attempt.get("id") != match[1]:
+                        raise ValueError("Invalid attempt")
+                    return self.send(attempt)
+                except (OSError, ValueError, AttributeError):
+                    return self.send({"error": "Attempt not found"}, 404)
             if path == "/api/corpus":
                 return self.send([ {key: case[key] for key in ("name", "description", "family", "split", "variant", "email")}
                                   for case in map(load_scenario, SCENARIOS)])
@@ -172,6 +213,8 @@ def create_server(port=8787, directory=Path("artifacts/experiments")):
                 if not 0 < length <= 16384:
                     raise ValueError("Request body must be 1–16384 bytes")
                 data = json.loads(self.rfile.read(length))
+                if self.path == "/api/attempts":
+                    return self.send({"job_id": console.submit_attempt(data)}, 202)
                 if self.path == "/api/experiments":
                     return self.send({"job_id": console.submit(data)}, 202)
                 match = re.fullmatch(r"/api/jobs/([a-f0-9]{32})/cancel", self.path)

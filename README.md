@@ -1,12 +1,12 @@
 # AI Agent Security Lab
 
-A reproducible testbed for prompt injection, tool misuse, and authorization boundaries in tool-using AI agents.
+A hands-on AI agent security lab: choose a target, write an attack, and inspect what the agent actually does.
 
-**Status: private research prototype, v0.2.** This is not a production security product or a completed model benchmark. All mail, files, customer records, and payments are synthetic. No real payments or emails can be sent by the lab's tools.
+**Status: private development lab, v0.3.** The learner interface uses model-driven attempts through an opt-in DeepSeek adapter. It does not run scripted solutions or show replay scores. All mail, files, customer records, and payments remain synthetic. No real payments or emails can be sent by the lab's tools.
 
-**Research question:** Can task-scoped tool authorization contain prompt-injection effects while preserving legitimate task completion?
+The home page contains only the lab list. Each lab opens its objective, attacker-controlled surface, payload editor, and attempt result. No history dashboard, experiment matrix, or model-selection controls are in the learner flow.
 
-## Web research console
+## Start the lab
 
 From the repository directory, with Python 3.11+:
 
@@ -14,21 +14,45 @@ From the repository directory, with Python 3.11+:
 python3 -m agent_security_lab serve
 ```
 
-Open **http://127.0.0.1:8787/**. The loopback-only console includes:
+Open **http://127.0.0.1:8787/** and choose a lab:
 
-- An experiment builder with scenario, mode, trial and seed controls.
-- Tabular policy comparisons with visible denominators and exclusions.
-- A searchable corpus, trace explorer, model trajectories and JSON export.
-- Locally saved experiment history, source/fixture hashes and model provenance.
-- An explicit distinction between offline policy replay and live-model observations.
-- Background execution, progress, and cancellation after the current run.
-- Light/dark themes with a saved preference and system-theme default.
+- **Tool Hijack:** redirect a tool-using agent through an untrusted email.
+- **Private Data:** induce a protected mock-record read and actual synthetic disclosure.
+- **Forged Approval:** make untrusted text look like authority for an out-of-scope action.
 
-The console starts empty unless local experiments already exist. Click **Run replay demo** for a real offline replay—not prefilled benchmark numbers. It makes no model request. No external fonts, analytics, scripts, or accounts are required.
+Payloads start empty; no attack solution is prefilled. Hints are optional. Each attempt creates a fresh target state and canary. The result is based on actual tool effects, not a model saying that an attack worked. Errors, limits, and unobserved payloads remain inconclusive. A partial forbidden effect remains visible even if the run later fails.
 
-The server binds only to `127.0.0.1`, checks Host and Origin, and requires a session token for mutations. It is not hardened multi-user hosting: do not reverse-proxy it, bind it publicly, or deploy it to Vercel. Close with Ctrl+C when finished.
+The target is protected by its system instructions. The stricter independent-policy comparison remains a separate CLI research tool, not a training difficulty that promises an exploitable bypass.
 
-## What works now
+### DeepSeek setup (owner only)
+
+Browsing labs and writing payloads require no API key and make no provider calls.
+Live attempts stay disabled until the owner sets **both** `DEEPSEEK_API_KEY` and
+`DEEPSEEK_ENABLE_REQUESTS=1` in the server environment. `DEEPSEEK_MODEL` chooses the
+model; the default is `deepseek-flash`, following the current official tool-call
+example. Check availability with your provider account before use.
+
+Restart the server after setting these variables. The key is never accepted through
+the browser or returned by the API. Do not commit it or paste it into an attack.
+No `.env` file is loaded automatically. Every attempt also requires explicit browser
+consent to sending the learner's payload and synthetic context to DeepSeek and
+using the configured account. One attempt is bounded to 6 model requests, 12 tool
+calls, 1,024 generated tokens per request, and a 30-second timeout per request.
+These are request bounds, not a guaranteed currency budget. There is no automatic
+retry, model download, provider fallback, or model call on page load.
+
+The adapter follows [DeepSeek's tool-calling format](https://api-docs.deepseek.com/guides/tool_calls/).
+It has offline transport/loop tests with mocked provider responses. **No live
+DeepSeek call has been made or validated in this change.** Connecting an API key
+is a separate owner step, not something the app silently completes.
+
+The server binds only to `127.0.0.1`, checks Host and Origin, and requires a session token for mutations. It is not hardened multi-user hosting: do not reverse-proxy it, bind it publicly, or deploy it to Vercel. Saved attempt JSON stays under `artifacts/experiments/attempts/` and may include the learner's text and synthetic tool data. Close with Ctrl+C when finished.
+
+## Separate research CLI
+
+The original policy replays, experiment matrices, and Ollama adapter remain available
+for development and regression testing through the CLI. They are not the learner
+interface and must not be presented as live DeepSeek attack results.
 
 - Twelve cases: three benign controls and nine malicious cases across payment redirection, synthetic data exfiltration, and forged approval.
 - Two execution modes: intentionally **unsafe** tool authorization and **guarded** execution with an independent policy gate.
@@ -74,7 +98,8 @@ model text:
 python3 -m agent_security_lab report artifacts/experiments/EXPERIMENT_ID.json --output artifacts/report.md
 ```
 
-The console also offers **Download report** alongside the original JSON export.
+The learner interface offers a JSON download of the current live attempt. Research
+Markdown reports remain available through the CLI.
 Report summaries are recomputed from individual runs; errors, exclusions, and
 unexposed attacks remain visible. Existing Markdown files are never overwritten.
 
